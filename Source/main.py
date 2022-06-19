@@ -1,10 +1,8 @@
-from cProfile import label
 from genericpath import exists
-from types import CellType
-from pyparsing import col
 import reader
 import tkinter as tk
 import shutil
+import os, sys
 from tkinter import CENTER, filedialog as fd
 
 
@@ -27,6 +25,26 @@ collection_label = tk.Listbox(root, listvariable=collection_var, bg='#7f90b3', h
 
 project_text = tk.StringVar()
 
+def find_root_folder(f):
+    """searches the given path for the folder with a project.godot file"""
+    root_path = ""
+    #reader.REPLACEMENT_PATH = f + "/"
+    #print(reader.REPLACEMENT_PATH)
+    split_path = os.path.split(f)[0]
+    while not exists(split_path+"/project.godot"):
+        split_path = os.path.split(split_path)[0]
+        print(split_path)
+        if split_path == "D:/":
+            break
+    
+    if exists(split_path+"/project.godot"):
+        root_path = split_path
+        print("root path: ", root_path)
+    else:
+        print("root path can't be found")
+    return root_path
+    
+
 def import_scene():
     print("do import stuff")
     scene = fd.askopenfilename()
@@ -35,6 +53,12 @@ def import_scene():
     
     if scene is None:
         return
+
+    root_path = find_root_folder(scene)
+    if root_path == "":
+        return
+
+    reader.REPLACEMENT_PATH = root_path + "/"
 
     collection += reader.collect_dependencies(scene)
     collection_var.set(collection)
@@ -65,18 +89,17 @@ def export_scene():
     target = fd.askdirectory()
     transfer_files(target)
 
-    pass
-
 def print_collection():
     print(collection)
     pass
 
 def set_project_folder():
     f = fd.askdirectory()
-    reader.replacement_path = f + "/"
+    reader.REPLACEMENT_PATH = f + "/"
+    print(reader.REPLACEMENT_PATH)
 
-    if exists(reader.replacement_path+"project.godot"):
-        print(reader.replacement_path)
+    if exists(reader.REPLACEMENT_PATH+"project.godot"):
+        print(reader.REPLACEMENT_PATH)
         project_text.set(("folder: "+ f))
         import_button.config(state="active")
     else:
@@ -90,19 +113,19 @@ def clear_collection():
     export_button.config(state="disabled")
 
 clear_button = tk.Button(root, text="Clear Collection", command=clear_collection, bg=button_color, fg='white')
-project_folder = tk.Button(root, text="root Folder", command=set_project_folder, bg=button_color, fg='white')
-project_label = tk.Label(root, textvariable=project_text, bg=button_color, fg='white')
-import_button = tk.Button(root,anchor=CENTER, text="Import", command = import_scene, state="disabled", bg=button_color, fg='white')
+#project_folder = tk.Button(root, text="root Folder", command=find_root_folder, bg=button_color, fg='white')
+#project_label = tk.Label(root, textvariable=project_text, bg=button_color, fg='white')
+import_button = tk.Button(root,anchor=CENTER, text="Import", command = import_scene, state="normal", bg=button_color, fg='white')
 import_button.place(x=0, y=75)
-export_button = tk.Button(root,anchor=CENTER, text="Export", command = export_scene, bg=button_color, fg='white', state="disabled", height=10, width=40)
+export_button = tk.Button(root,anchor=CENTER, text="Export", command = export_scene, bg=button_color, fg='white', state="disabled", height=2, width=20)
 
 
 # print_button = tk.Button(root, text="Export", command = print_collection)
 
 
 clear_button.pack()
-project_folder.pack()
-project_label.pack()
+#project_folder.pack()
+#project_label.pack()
 import_button.pack()
 collection_label.pack()
 export_button.pack()
