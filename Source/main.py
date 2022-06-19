@@ -34,7 +34,7 @@ def find_root_folder(f):
     while not exists(split_path+"/project.godot"):
         split_path = os.path.split(split_path)[0]
         print(split_path)
-        if split_path == "D:/":
+        if len(split_path) == 3:
             break
     
     if exists(split_path+"/project.godot"):
